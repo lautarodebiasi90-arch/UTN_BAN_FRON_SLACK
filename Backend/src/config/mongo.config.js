@@ -1,30 +1,43 @@
 import mongoose from "mongoose";
+
 import ENVIRONMENT from "./environment.config.js";
 
+let connectionPromise = null;
 
-console.log(ENVIRONMENT)
+async function connectMongoDB() {
 
+    if (mongoose.connection.readyState === 1) {
+        
+        return mongoose.connection;
 
-const MONGO_URI = 'mongodb://localhost:27017'
-const MONGO_DB_NAME = 'UTN_2026_LAUTA'
-
-async function connectMongo() {
-    try{
-        await mongoose.connect(
-        ENVIRONMENT.MONGO_DB_URI + '/' + ENVIRONMENT.MONGO_DB_NAME
-    )
-    console.log('Conexion a MongoDB exitosa')
     }
-    catch(error){
-        console.error('Error critico al conectar a MongoDB', error.message)
 
-        /* Crasheo controlado */
-        process.exit(1)
-    }   
-} 
+    if (!connectionPromise) {
 
+        connectionPromise = mongoose.connect(
 
-export default connectMongo
+            `${ENVIRONMENT.MONGO_DB_URI}/${ENVIRONMENT.MONGO_DB_NAME}`,
 
+            {
 
+                serverSelectionTimeoutMS: 10000
 
+            }
+
+        ).catch(error => {
+
+            connectionPromise = null;
+
+            throw error;
+
+        });
+
+    }
+
+    await connectionPromise;
+
+    return mongoose.connection;
+
+}
+
+export default connectMongoDB;
