@@ -3,14 +3,10 @@ import useForm from '../../hooks/useForm'
 import { login } from '../../services/authService'
 import useRequest from '../../hooks/useRequest'
 
-
-/*
+/* 
 Siguiendo las practicas implementadas la conectar el formulario de login con nuesta API REST
 Desarrollar la implementacion del formulario de registro y la consulta a la API REST
 */
-
-
-
 
 function LoginScreen() {
     
@@ -18,15 +14,16 @@ function LoginScreen() {
     const {formState, handleChangeInput} = useForm(initial_state)
     const {loading, response, error, sendRequest} = useRequest()
    
+
     async function handleSubmit (event){
         event.preventDefault()
         sendRequest(
-           async () => login(formState.email, formState.password)
+            () => login(formState.email, formState.password)
         )
         console.log('Usuario intenta iniciar sesion', formState)
     }
 
-    console.log('[Estado de la consulta de login]:',apiResponse)
+
 
     
     
@@ -55,22 +52,22 @@ function LoginScreen() {
                     />
                 </div>
                 {
-                    apiResponse.error 
+                    error
                     && 
-                    !apiResponse.loading 
+                    !loading 
                     && 
-                    <span style={{color: 'red'}}>{apiResponse.error}</span>
+                    <span style={{color: 'red'}}>{error}</span>
                 }
 
                 {
-                    apiResponse.loading
+                    loading
                     ? <button type='submit' disabled={true} >Cargando...</button>
                     : <button type='submit'>Iniciar sesion</button>
                 }
                 
 
                 {
-                    apiResponse.response && !apiResponse.loading && <span style={{color: 'greenyellow'}}>Inicio de sesion exitoso</span>
+                    response && !loading && <span style={{color: 'greenyellow'}}>Inicio de sesion exitoso</span>
                 }
             </form>
         </div>
