@@ -35,6 +35,6 @@ const userSchema = new mongoose.Schema(
 
 export const USER_COLLECTION_NAME = 'Usuario'
 const User = mongoose.model('Usuario', userSchema)
-
+    
 export default User 
 
