@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import useForm from '../../hooks/useForm'
 import { login } from '../../services/authService'
 import useRequest from '../../hooks/useRequest'
+import { useNavigate } from 'react-router'
 
 /* 
 Siguiendo las practicas implementadas la conectar el formulario de login con nuesta API REST
@@ -15,6 +16,8 @@ function LoginScreen() {
     const {loading, response, error, sendRequest} = useRequest()
    
 
+    const navigate = useNavigate()
+
     async function handleSubmit (event){
         event.preventDefault()
         sendRequest(
@@ -24,8 +27,22 @@ function LoginScreen() {
     }
 
 
+        /* 
+    Los efectos sirven para controlar la recarga/ejecucion de una funcion
 
-    
+    Cuando la response cambie/llegue:
+        - Guardar en localstorage el auth_token (para que luego podamos seguir usandolo)
+        - voy a redireccionar a /home
+    */
+    useEffect(
+        () => {
+            if(response && response.data){
+                localStorage.setItem('auth_token', response.data.auth_token)
+                navigate('/')
+            }
+        },
+        [response]
+    )
     
     return (
         <div>
