@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react'
 import useRequest from '../../hooks/useRequest'
 import { getAllWorkspaces } from '../../services/workspaceService'
 
+
+
 function HomeScreeen() {
 
   /* 
@@ -25,11 +27,45 @@ function HomeScreeen() {
     },
     []
   )
+
   console.log(response, error, loading)
- 
+  useEffect(() => {
+    sendRequest(() => getAllWorkspaces())
+  }, [])
+  let content = null
+  if (loading) {
+    content = <p>cargando...</p>
+  }
+  else if (error) {
+    content = <div>
+    <span className='error-text'>Error: {error}</span>
+    <button>Recargar</button>
+      </div>
+  }
+
+  else if (!response) {
+    content = <div>
+      <span className='error-text'>Error: Ocurrio un problema
+        al obtener la lista de espacios de trabajo</span>
+      <button>Recargar</button>
+    </div>
+  }
+  else if (response.data.workspaces.length === 0) {
+    content = <p>Aún no creaste ningún espacio de trabajo</p>
+  }
+  else {
+    content = <ul>
+      {response.data.workspaces.map((workspace) => (
+        <link key={workspace.id} to={`/workspace/${workspace._id}`}>
+          {workspace.name}
+        </link>
+      ))}
+    </ul>
+  }
   return (
     <div>
       <h1>Bienvenido a slack!</h1>
+      {content}
     </div>
   )
 }
