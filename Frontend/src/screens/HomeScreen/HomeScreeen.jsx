@@ -7,8 +7,6 @@ import WorkspaceList from '../../components/WorkspaceList/WorkspaceList'
 
 function HomeScreeen() {
 
-  
-
   return (
     <div>
       <h1>Bienvenido a slack!</h1>
