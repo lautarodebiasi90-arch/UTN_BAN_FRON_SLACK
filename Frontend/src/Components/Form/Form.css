@@ -6,19 +6,30 @@
 /* ---------- Layout de pantalla (fondo + tarjeta centrada) ---------- */
 
 .form-screen {
-  min-height: 100vh;
+  height: 100vh; /* exactamente el alto de la pantalla: sin scroll vertical */
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px 16px;
   background-color: var(--surface);
+  overflow: hidden; /* el contenido compacto entra solo; si no entra, se recorta en vez de scrollear */
+}
+
+/* En pantallas MUY bajas no ocultamos el contenido: se permite
+   scrollear para no perder los links del footer. */
+@media (max-height: 560px) {
+  .form-screen {
+    height: auto;
+    min-height: 100vh;
+    overflow: auto;
+  }
 }
 
 .form-card {
   width: 60%; /* el card del formulario ocupa el 60% en computadoras */
   background-color: var(--surface);
   border-radius: var(--radius-lg);
-  padding: 36px;
+  padding: 24px; /* compacto para que el form entre sin scroll vertical */
 }
 
 .form-title {
@@ -32,14 +43,19 @@
 
 .form-logo {
   display: block;
-  margin: 0 auto 12px;
+  margin: 0 auto 6px;
 }
 
 .form-subtitle {
-  font-size: 0.95rem;
+  font-size: 1.05rem;
   color: var(--text-muted);
   text-align: center;
-  margin-bottom: 24px;
+  margin-bottom: 14px;
+}
+
+.form-subtitle strong {
+  font-weight: 700;
+  color: var(--ink); /* la negrita resalta mas sobre el gris del resto */
 }
 
 /* ---------- Formulario ---------- */
@@ -47,7 +63,7 @@
 .form-stack {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
   width: 100%;
   max-width: 483px; /* los campos tienen limite aunque el card no */
   margin: 0 auto;
@@ -67,8 +83,8 @@
 
 .form-field__input {
   width: 100%;
-  min-height: 48px;
-  padding: 12px 14px;
+  min-height: 42px;
+  padding: 9px 14px;
   font-size: 1rem; /* evita zoom automatico en iOS */
   font-family: inherit;
   color: var(--ink);
@@ -90,12 +106,33 @@
     0 0 0 5px color-mix(in srgb, var(--brand) 30%, transparent);
 }
 
+/* Variante del campo de email: esquinas redondeadas y borde gris claro */
+.form-field__input--pill {
+  border-radius: 16px;
+  border-color: var(--border); /* borde gris claro como Slack */
+  height: 48px; /* misma altura que el boton Continuar */
+  padding: 0 18px; /* el alto lo fija height, no el padding */
+}
+
+.form-field__input--pill:hover:not(:focus) {
+  border-color: var(--border-strong);
+}
+
+/* El anillo de foco que encierra el campo tambien en negro */
+.form-field__input--pill:focus {
+  outline: none;
+  border-color: transparent;
+  box-shadow:
+    0 0 0 1.5px #1D1C1D,
+    0 0 0 5px rgba(29, 28, 29, 0.12);
+}
+
 /* ---------- Textarea (descripcion) ---------- */
 
 .form-field__textarea {
   width: 100%;
-  min-height: 110px;
-  padding: 12px 14px;
+  min-height: 88px;
+  padding: 9px 14px;
   font-size: 1rem;
   font-family: inherit;
   line-height: 1.5;
@@ -140,8 +177,8 @@
   justify-content: center;
   gap: 10px;
   width: 100%;
-  min-height: 48px;
-  padding: 12px 16px;
+  min-height: 42px;
+  padding: 9px 16px;
   font-family: inherit;
   font-size: 1rem;
   font-weight: 600;
@@ -190,9 +227,10 @@
 /* ---------- Pie: link a otra pantalla ---------- */
 
 .form-footer {
-  margin-top: 20px;
+  margin-top: 12px;
   text-align: center;
-  font-size: 0.9rem;
+  font-size: 0.82rem;
+  line-height: 1.45;
   color: var(--text-muted);
 }
 
@@ -203,6 +241,176 @@
 }
 
 .form-footer a:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Divisor con texto (ej: OTRAS OPCIONES) ---------- */
+
+.form-divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 52px; /* 52px + 12px de gap = 64px desde el boton Continuar */
+}
+
+.form-divider__line {
+  flex: 1;
+  height: 1px;
+  background-color: var(--border); /* gris claro, como el divisor de Slack */
+}
+
+.form-divider__text {
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: #454245;
+}
+
+/* ---------- Botones sociales (Google / Apple) ---------- */
+
+.social-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 52px; /* 52px + 12px de gap = 64px desde el divisor OTRAS OPCIONES */
+}
+
+.social-button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 16px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  background-color: var(--surface);
+  border: 1.5px solid #1D1C1D; /* borde negro como el campo de email */
+  border-radius: 999px; /* extremos totalmente curvos (forma de pildora) */
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.social-button:hover {
+  background-color: #F8F8F8;
+}
+
+.social-button__icon {
+  flex-shrink: 0;
+}
+
+/* ---------- Ya estas usando Slack ---------- */
+
+.already-using {
+  margin-top: 64px; /* aire entre los botones Google/Apple y este bloque */
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.already-using__link {
+  display: inline-block;
+  margin-top: 4px;
+  font-weight: 600;
+  color: var(--info-color); /* azul como en Slack */
+  text-decoration: none;
+}
+
+.already-using__link:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Correos recordados (como Slack) ---------- */
+
+.remembered-emails {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.remembered-email {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 42px;
+  padding: 9px 16px;
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--ink);
+  background-color: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.remembered-email:hover {
+  border-color: var(--brand);
+}
+
+.remembered-email:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 1px var(--brand),
+    0 0 0 5px color-mix(in srgb, var(--brand) 30%, transparent);
+}
+
+.remembered-email strong {
+  font-weight: 600;
+  color: var(--brand);
+}
+
+/* Variante violeta de Slack para el boton Continuar del login */
+.form-btn--violet {
+  background-color: #611F69;
+  border-radius: 999px; /* extremos totalmente curvos (forma de pildora) */
+  height: 48px; /* misma altura que el campo de email */
+  min-height: 48px; /* pisa el min-height compacto del boton base */
+  padding: 0 16px; /* el alto lo fija height, no el padding */
+  margin-top: 12px; /* separacion total de 24px con el campo, como Slack */
+}
+
+.form-btn--violet:hover:not(:disabled) {
+  background-color: #4A154B;
+}
+
+/* ---------- Variante del login (paso del correo), como Slack ----------
+   Titulo y subtitulo alineados a la izquierda, mas aire antes del campo. */
+
+.form-card--login .form-title {
+  font-weight: 700;
+  text-align: center;
+}
+
+.form-card--login .form-subtitle {
+  color: #454245; /* gris oscuro de Slack para el texto de ayuda */
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.form-card--login .form-subtitle strong {
+  color: var(--ink);
+}
+
+/* ---------- Boton de texto (vuelve a un paso anterior del form) ---------- */
+
+.link-button {
+  background: none;
+  border: none;
+  padding: 4px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--brand);
+  text-align: center;
+  cursor: pointer;
+}
+
+.link-button:hover {
   text-decoration: underline;
 }
 
@@ -217,15 +425,15 @@
 
 @media (max-width: 480px) {
   .form-screen {
-    padding: 16px 12px;
+    padding: 12px 10px;
   }
 
   .form-card {
-    padding: 24px 20px;
+    padding: 18px 16px;
     border-radius: 14px;
   }
 
-  /* 48px se escriba en una sola linea, en pantallas pequeñas se escala
+  /* El titulo se escribe en una sola linea, en pantallas pequeñas se escala
      para que quepa sin desbordar el card (mantiene la misma linea). */
   .form-title {
     font-size: 7vw;

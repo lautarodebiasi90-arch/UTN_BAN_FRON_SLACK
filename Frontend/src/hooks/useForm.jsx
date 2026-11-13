@@ -16,9 +16,22 @@ function useForm (initial_state ){
         )
     }
 
+    /*
+    Permite setear un campo por codigo (sin evento),
+    util para precargar valores guardados (ej: email recordado).
+    */
+    function setFieldValue (field_name, field_value){
+        setFormState(
+            (prevState) => {
+                return {...prevState, [field_name]: field_value}
+            }
+        )
+    }
+
     return {
-        formState, 
-        handleChangeInput
+        formState,
+        handleChangeInput,
+        setFieldValue
     }
 }
 

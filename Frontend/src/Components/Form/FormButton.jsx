@@ -9,11 +9,11 @@ import './Form.css'
   Uso:
     <FormButton loading={loading}>Registrarse</FormButton>
 */
-function FormButton({ loading = false, disabled = false, loadingText = 'Cargando…', children }) {
+function FormButton({ loading = false, disabled = false, loadingText = 'Cargando…', className = '', children }) {
   return (
     <button
       type='submit'
-      className={`form-btn${loading ? ' form-btn--loading' : ''}`}
+      className={`form-btn${className ? ` ${className}` : ''}${loading ? ' form-btn--loading' : ''}`}
       disabled={loading || disabled}
     >
       {loading ? (

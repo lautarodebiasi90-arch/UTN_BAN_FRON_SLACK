@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import useForm from '../../hooks/useForm'
 import { login } from '../../services/authService'
@@ -13,14 +13,51 @@ Siguiendo las practicas implementadas la conectar el formulario de login con nue
 Desarrollar la implementacion del formulario de registro y la consulta a la API REST
 */
 
+// Correos con los que ya se inicio sesion antes (como Slack recuerda tus cuentas)
+const REMEMBERED_EMAILS_KEY = 'login_remembered_emails'
+const MAX_REMEMBERED_EMAILS = 3
+
+function getRememberedEmails(){
+    try{
+        const list = JSON.parse(localStorage.getItem(REMEMBERED_EMAILS_KEY))
+        return Array.isArray(list) ? list : []
+    } catch{
+        return []
+    }
+}
+
+function saveRememberedEmail(email){
+    const emails = getRememberedEmails().filter(saved => saved !== email)
+    emails.unshift(email)
+    localStorage.setItem(REMEMBERED_EMAILS_KEY, JSON.stringify(emails.slice(0, MAX_REMEMBERED_EMAILS)))
+}
+
 function LoginScreen() {
 
-    const initial_state = {email: '', password: ''}
-    const {formState, handleChangeInput} = useForm(initial_state)
+    const initial_state = {email: getRememberedEmails()[0] || '', password: ''}
+    const {formState, handleChangeInput, setFieldValue} = useForm(initial_state)
     const {loading, response, error, sendRequest} = useRequest()
+    // Paso 1: pedir el correo. Paso 2: pedir la contrasena.
+    const [step, setStep] = useState(1)
+    const [rememberedEmails, setRememberedEmails] = useState(getRememberedEmails)
 
     const navigate = useNavigate()
 
+
+    function handleContinue(event){
+        event.preventDefault()
+        setStep(2)
+    }
+
+    function handleBackToEmail(){
+        setStep(1)
+    }
+
+    // Al tocar un correo recordado, salta directo al paso de la contrasena
+    function handleChooseRememberedEmail(email){
+        setFieldValue('email', email)
+        setStep(2)
+    }
 
     async function handleSubmit (event){
         event.preventDefault()
@@ -41,6 +78,10 @@ function LoginScreen() {
         () => {
             if(response && response.data){
                 localStorage.setItem('auth_token', response.data.auth_token)
+                // Recordar el correo usado para la proxima vez
+                const usedEmail = formState.email.trim()
+                saveRememberedEmail(usedEmail)
+                setRememberedEmails(getRememberedEmails())
                 navigate('/')
             }
         },
@@ -51,7 +92,7 @@ function LoginScreen() {
 
     return (
         <div className='form-screen'>
-            <div className='form-card'>
+            <div className='form-card form-card--login'>
                 <img
                     className='form-logo'
                     alt='Slack'
@@ -59,39 +100,105 @@ function LoginScreen() {
                     title='Slack'
                     src='https://a.slack-edge.com/bv1-13/slack_logo-97f7334.svg'
                 />
-                <h1 className='form-title'>Iniciar sesión</h1>
-                <p className='form-subtitle'>Ingresá con tu cuenta para volver a trabajar</p>
-                <form className='form-stack' onSubmit={handleSubmit}>
-                    <TextField
-                        name='email'
-                        label='Email:'
-                        type='email'
-                        value={formState.email}
-                        onChange={handleChangeInput}
-                        autoComplete='email'
-                    />
-                    <TextField
-                        name='password'
-                        label='Password:'
-                        type='password'
-                        value={formState.password}
-                        onChange={handleChangeInput}
-                        autoComplete='current-password'
-                    />
-                    {
-                        error
-                        &&
-                        !loading
-                        &&
-                        <Alert type='error'>{error}</Alert>
-                    }
+                <h1 className='form-title'>Primero, escribe tu correo</h1>
+                <p className='form-subtitle'>
+                    {step === 1
+                        ? <>Te sugerimos que uses <strong>la dirección de correo electrónico que usas en el trabajo</strong>.</>
+                        : `Escribí tu contraseña para ${formState.email.trim()}`}
+                </p>
+                {step === 1 && (
+                    <>
+                    <form className='form-stack' onSubmit={handleContinue}>
+                        {
+                            rememberedEmails.length > 0
+                            &&
+                            <div className='remembered-emails'>
+                                {
+                                    rememberedEmails.map(email => (
+                                        <button
+                                            key={email}
+                                            type='button'
+                                            className='remembered-email'
+                                            onClick={() => handleChooseRememberedEmail(email)}
+                                        >
+                                            Continuar como <strong>{email}</strong>
+                                        </button>
+                                    ))
+                                }
+                            </div>
+                        }
+                        <TextField
+                            name='email'
+                            type='email'
+                            placeholder='nombre@work-email.com'
+                            className='form-field__input--pill'
+                            value={formState.email}
+                            onChange={handleChangeInput}
+                            autoComplete='email'
+                            autoFocus
+                        />
+                        <FormButton className='form-btn--violet'>Continuar</FormButton>
+                        <div className='form-divider'>
+                            <span className='form-divider__line' aria-hidden='true'></span>
+                            <span className='form-divider__text'>OTRAS OPCIONES</span>
+                            <span className='form-divider__line' aria-hidden='true'></span>
+                        </div>
+                        <div className='social-buttons'>
+                            <button type='button' className='social-button'>
+                                <svg className='social-button__icon' width='18' height='18' viewBox='0 0 48 48' aria-hidden='true'>
+                                    <path fill='#FFC107' d='M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3l5.7-5.7C34 6.1 29.3 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.3-.1-2.7-.4-3.9z'/>
+                                    <path fill='#FF3D00' d='M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.9 1.2 8 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z'/>
+                                    <path fill='#4CAF50' d='M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.3 0-9.7-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z'/>
+                                    <path fill='#1976D2' d='M43.6 20.1H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.5l6.2 5.2C36.9 39.3 44 34 44 24c0-1.3-.1-2.7-.4-3.9z'/>
+                                </svg>
+                                Google
+                            </button>
+                            <button type='button' className='social-button'>
+                                <svg className='social-button__icon' width='15' height='18' viewBox='0 0 384 512' aria-hidden='true'>
+                                    <path fill='currentColor' d='M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z'/>
+                                </svg>
+                                Apple
+                            </button>
+                        </div>
+                    </form>
+                    <div className='already-using'>
+                        <p className='already-using__text'>¿Ya estás usando Slack?</p>
+                        <Link to='/login' className='already-using__link'>
+                            Iniciar sesión en un espacio de trabajo existente
+                        </Link>
+                    </div>
+                </>
+                )}
+                {step === 2 && (
+                    <form className='form-stack' onSubmit={handleSubmit}>
+                        <TextField
+                            name='password'
+                            label='Password:'
+                            type='password'
+                            value={formState.password}
+                            onChange={handleChangeInput}
+                            autoComplete='current-password'
+                            autoFocus
+                        />
+                        {
+                            error
+                            &&
+                            !loading
+                            &&
+                            <Alert type='error'>{error}</Alert>
+                        }
 
-                    <FormButton loading={loading} loadingText='Iniciando sesión…'>Iniciar sesión</FormButton>
+                        <FormButton loading={loading} loadingText='Iniciando sesión…'>Iniciar sesión</FormButton>
 
-                    {
-                        response && !loading && <Alert type='success'>Inicio de sesion exitoso</Alert>
-                    }
-                </form>
+                        {
+                            response && !loading && <Alert type='success'>Inicio de sesion exitoso</Alert>
+                        }
+
+                        <button type='button' className='link-button' onClick={handleBackToEmail}>
+                            Usar otro correo
+                        </button>
+                    </form>
+                )}
                 <p className='form-footer'>
                     ¿Olvidaste tu contrasena? <Link to='/forgot-password'>Recuperala aca</Link>
                     <br />

@@ -2,6 +2,8 @@ import useWorkspaceList from '../../hooks/useWorkspaceList'
 import { Link } from 'react-router'
 import './WorkspaceList.css'
 
+
+
 const WORKSPACE_AVATAR_URL = 'https://a.slack-edge.com/80588/img/avatars-teams/ava_0018-88.png'
 
 /*
