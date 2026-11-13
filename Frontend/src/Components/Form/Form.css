@@ -304,10 +304,23 @@
 /* ---------- Ya estas usando Slack ---------- */
 
 .already-using {
-  margin-top: 64px; /* aire entre los botones Google/Apple y este bloque */
+  margin-top: 24px; /* pegado abajo de los botones Google/Apple */
   text-align: center;
   font-size: 0.9rem;
   color: var(--text-muted);
+}
+
+/* Login: letra mas grande, texto oscuro y "espacio de trabajo" abajo */
+.form-card--login .already-using {
+  font-size: 1.125rem; /* 18px, como en la imagen */
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+.form-card--login .already-using__link {
+  display: inline; /* fluye con el texto y baja con el <br /> del JSX */
+  margin-top: 0;
+  font-weight: 400;
 }
 
 .already-using__link {
@@ -381,19 +394,218 @@
 /* ---------- Variante del login (paso del correo), como Slack ----------
    Titulo y subtitulo alineados a la izquierda, mas aire antes del campo. */
 
+/* ---------- Login: medidas de la pagina real de Slack ---------- */
+
+.form-card--login {
+  width: 100%;
+  max-width: 700px; /* columna central como la pagina real */
+}
+
+/* Header de la pantalla: logo centrado y "Crear una cuenta" a la derecha */
+.form-screen--login {
+  flex-direction: column;
+  justify-content: flex-start;
+  padding-top: 52px; /* baja el header completo (logo + crear cuenta) */
+  overflow-y: auto; /* permite scrollear si el contenido no entra */
+}
+
+.login-header {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 40px; /* deja el titulo un poquito mas arriba */
+}
+
+.login-header__logo {
+  height: 28px; /* a pedido */
+  width: auto;
+}
+
+.login-header__signup {
+  position: absolute;
+  top: 0;
+  right: 24px;
+  text-align: right;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.login-header__text {
+  color: #454245;
+}
+
+.login-header__link {
+  color: var(--info-color); /* azul como Slack */
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.login-header__link:hover {
+  text-decoration: underline;
+}
+
 .form-card--login .form-title {
   font-weight: 700;
   text-align: center;
+  font-size: min(56px, 6vw); /* titulo grande, se escala en pantallas chicas */
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  white-space: nowrap; /* cada reglon forzado con <br/> va en una sola linea */
+  /* el titulo es mas ancho que el card de 700px: ocupa todo el ancho de pantalla */
+  width: 100vw;
+  margin: 0 auto 16px;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
 }
 
 .form-card--login .form-subtitle {
   color: #454245; /* gris oscuro de Slack para el texto de ayuda */
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 48px; /* aire antes del campo de email */
 }
 
 .form-card--login .form-subtitle strong {
   color: var(--ink);
+}
+
+/* Formulario del login: campo y boton como la pagina real de Slack */
+.form-card--login .form-stack {
+  max-width: 490px;
+}
+
+.form-card--login .form-field__input--pill {
+  height: 52px;
+  border-radius: 10px;
+  font-size: 20px; /* mas grande, a pedido */
+  max-width: 450px; /* mismo ancho que el boton violeta, centrado */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.form-card--login .form-btn--violet {
+  height: 52px;
+  min-height: 52px;
+  border-radius: 10px;
+  font-size: 18px; /* a pedido */
+  font-weight: 800; /* letra mas gruesa, a pedido */
+  max-width: 450px; /* mas angosto que el formulario (490px), centrado */
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 0; /* pisa el margin-top base: solo el gap de 12px del stack */
+}
+
+/* Botones Google/Apple del login: pildora con extremos totalmente curvos,
+   borde fino y un poco de aire entre el icono y la letra */
+.form-card--login .social-buttons {
+  justify-content: center;
+  margin-top: 14px; /* 14px + 12px de gap del stack = 26px desde el divisor */
+  max-width: 450px; /* mismo ancho que el boton violeta y el campo */
+  margin-left: auto;
+  margin-right: auto; /* centrado */
+}
+
+/* Botones Google/Apple del login: iguales al boton violeta,
+   esquinas de 12px, borde gris y texto en negrita */
+.form-card--login .social-button {
+  flex: 1; /* llenan la fila: juntos suman los mismos 450px del boton violeta */
+  border: 1px solid var(--border-strong); /* gris medio como en la imagen */
+  border-radius: 12px; /* mismas esquinas que el campo y el boton violeta */
+  height: 48px; /* misma altura que el campo y el boton violeta */
+  gap: 2px; /* icono pegado a la letra */
+  padding: 0 71px; /* aire a los lados del contenido */
+  font-weight: 700;
+  font-size: 20px;
+}
+
+/* ---------- Variante del registro: medidas exactas de Slack ----------
+   Sin zoom: usa los valores reales de la pagina slack.com/get-started
+   (columna 700px, titulo 44px/48px, campos grandes de 44px con fuente 18px). */
+
+.form-card--register {
+  width: 100%;
+  max-width: 700px; /* columna de contenido real (.p-get_started_landing_view__content_wrapper) */
+}
+
+.form-card--register .form-logo {
+  margin-top: 24px; /* menos aire arriba del logo */
+  margin-bottom: 48px; /* aire entre el logo y el titulo "Primero, escribe tu correo" */
+  height: 32px; /* logo un poco mas grande (el atributo del HTML mide 26px) */
+  width: auto;
+}
+
+.form-card--register .form-title {
+  font-size: 52px; /* mas grande que el Slack real (44px), a pedido */
+  line-height: 56px;
+  letter-spacing: -0.25px;
+  margin-bottom: 24px; /* mas aire entre el titulo y el subtitulo */
+}
+
+.form-card--register .form-subtitle {
+  font-size: 18px; /* sub heading real de Slack (.p-get_started_landing_view__subtitle) */
+  line-height: 27px;
+  color: #454245;
+  margin-bottom: 42px; /* mas aire antes del primer campo (Nombre y apellido) */
+  white-space: nowrap; /* el texto siempre en una sola linea */
+}
+
+/* Slack usa una columna de 700px para titulo/subtitulo, pero el formulario
+   queda mas corto: los campos (y el boton) se limitan a 483px y centrados */
+/* Slack usa una columna de 700px para titulo/subtitulo, pero el formulario
+   queda mas corto: los campos (y el boton) se limitan a 450px y centrados */
+.form-card--register .form-stack {
+  max-width: 400px;
+  gap: 20px;
+}
+
+/* Campos grandes de Slack: 44px de alto y fuente de 18px (.c-input_text--large) */
+.form-card--register .form-field__input--pill {
+  height: 44px;
+  padding: 0 12px;
+  font-size: 18px;
+}
+
+/* Boton violeta de Slack: misma altura que los campos (44px) */
+.form-card--register .form-btn--violet {
+  height: 44px;
+  min-height: 44px;
+  margin-top: 0; /* el gap del stack ya separa 20px */
+}
+
+/* Divisor del login: mas pegado al boton violeta que en el registro,
+   y con las barras mas cortas, texto siempre centrado */
+.form-card--login .form-divider {
+  margin-top: 0; /* pisa el margin-top base: solo el gap de 12px del stack */
+  justify-content: center; /* mantiene el texto centrado con barras cortas */
+}
+
+.form-card--login .form-divider__line {
+  flex: none;
+  width: 130px; /* barras menos anchas, a pedido */
+}
+
+/* Divisor del register: 20px + 20px de gap del stack = 40px desde el boton Registrarse */
+.form-card--register .form-divider {
+  margin-top: 20px; /* 20px + 20px de gap del stack = 40px desde el boton Registrarse */
+}
+
+.form-card--register .social-buttons {
+  margin-top: 24px; /* en Slack los botones Google/Apple quedan cerca del divisor */
+  width: 400px; /* mismo ancho que el formulario */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Letra un poco mas grande en los botones Google/Apple de register */
+.form-card--register .social-button {
+  font-size: 20px; /* el base es ~15px (0.95rem) */
+  gap: 4px; /* el logo queda pegado a la letra */
+}
+
+.form-card--register .form-footer {
+  font-size: 15px; /* links del footer de Slack (.p-refreshed_page__footer_link) */
+  color: #696969;
 }
 
 /* ---------- Boton de texto (vuelve a un paso anterior del form) ---------- */

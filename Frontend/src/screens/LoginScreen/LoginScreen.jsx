@@ -91,19 +91,31 @@ function LoginScreen() {
 
 
     return (
-        <div className='form-screen'>
-            <div className='form-card form-card--login'>
+        <div className='form-screen form-screen--login'>
+            <header className='login-header'>
                 <img
-                    className='form-logo'
+                    className='login-header__logo'
                     alt='Slack'
-                    height='26'
+                    height='32'
                     title='Slack'
                     src='https://a.slack-edge.com/bv1-13/slack_logo-97f7334.svg'
                 />
-                <h1 className='form-title'>Primero, escribe tu correo</h1>
+                <div className='login-header__signup'>
+                    <p className='login-header__text'>¿Es tu primera vez en Slack?</p>
+                    <Link to='/register' className='login-header__link'>
+                        Crear una cuenta
+                    </Link>
+                </div>
+            </header>
+            <div className='form-card form-card--login'>
+                <h1 className='form-title'>
+                    {step === 1
+                        ? <>Escribe tu correo electrónico<br />para iniciar sesión</>
+                        : 'Escribe tu contraseña'}
+                </h1>
                 <p className='form-subtitle'>
                     {step === 1
-                        ? <>Te sugerimos que uses <strong>la dirección de correo electrónico que usas en el trabajo</strong>.</>
+                        ? 'O elige otra manera de iniciar sesión.'
                         : `Escribí tu contraseña para ${formState.email.trim()}`}
                 </p>
                 {step === 1 && (
@@ -137,10 +149,10 @@ function LoginScreen() {
                             autoComplete='email'
                             autoFocus
                         />
-                        <FormButton className='form-btn--violet'>Continuar</FormButton>
+                        <FormButton className='form-btn--violet'>Conectarse a través del correo electrónico</FormButton>
                         <div className='form-divider'>
                             <span className='form-divider__line' aria-hidden='true'></span>
-                            <span className='form-divider__text'>OTRAS OPCIONES</span>
+                            <span className='form-divider__text'>O INICIAR SESIÓN CON</span>
                             <span className='form-divider__line' aria-hidden='true'></span>
                         </div>
                         <div className='social-buttons'>
@@ -162,10 +174,14 @@ function LoginScreen() {
                         </div>
                     </form>
                     <div className='already-using'>
-                        <p className='already-using__text'>¿Ya estás usando Slack?</p>
-                        <Link to='/login' className='already-using__link'>
-                            Iniciar sesión en un espacio de trabajo existente
-                        </Link>
+                        <p className='already-using__text'>
+                            ¿Tienes problemas?{' '}
+                            <Link to='/login' className='already-using__link'>
+                                Intenta introducir la URL de un
+                                <br />
+                                espacio de trabajo
+                            </Link>
+                        </p>
                     </div>
                 </>
                 )}
