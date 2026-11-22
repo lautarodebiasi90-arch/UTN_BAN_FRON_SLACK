@@ -15,7 +15,8 @@ class WorkspaceRepository {
     }
 
     async updateById(workspace_id, update_data){
-        await Workspace.findByIdAndUpdate(workspace_id, update_data)
+        //{ new: true } devuelve el documento YA actualizado (por defecto devuelve el doc previo)
+        return await Workspace.findByIdAndUpdate(workspace_id, update_data, { new: true })
     }
 }
 const workspace_repository = new WorkspaceRepository()

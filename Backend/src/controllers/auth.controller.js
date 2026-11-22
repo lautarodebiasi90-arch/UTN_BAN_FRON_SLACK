@@ -1,11 +1,10 @@
-import ENVIRONMENT from "../config/environment.config.js"
-import mailer_transporter from "../config/mailer.config.js"
-import user_repository from "../repositories/user.repository.js"
-import { compareHash, generateHash } from "../utils/bcrypt.util.js"
-import ServerError from "../utils/error.util.js"
-import bcrypt from 'bcrypt'
-import jwt from 'jsonwebtoken'
+/*
+El controller es la capa HTTP: lee lo que llega en el request,
+delega la logica de negocio a la capa de servicios
+y arma la response para el cliente.
+*/
 
+import * as auth_services from "../services/auth.services.js"
 
 /* 
 Para enviar en una request HTTP info a una API usamos el body
@@ -17,68 +16,10 @@ El body puede ser de distintos tipos de dato:
 
 export async function register(request, response) {
 
-    console.log("[REGISTER]", request.body)
     const { username, email, password } = request.body
 
-    if (!username || !email || !password) {
-        throw new ServerError(
-            "Email, password and username is required",
-            400
-        )
-    }
-
-    if (!(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) {
-        throw new ServerError(
-            "Email is incorrect",
-            400
-        )
-    }
-
-    //Validar si el mail ya esta registrado
-    const user_already_exist = await user_repository.getByEmail(email)
-    if (user_already_exist) {
-        throw new ServerError(
-            'Email is already used',
-            400
-        )
-    }
-
-    /* 
-    Encriptamos la password para que en DB se guarde un dato irreversible 
-    Viendo el dato irreversible es IMPROBABLE que se sepa el dato original
-    */
-
-    const password_hash = await generateHash(password)
-
-    await user_repository.create(username, email, password_hash)
-
-
-    const verify_email_token = jwt.sign(
-        {
-            email: email
-        },
-        ENVIRONMENT.JWT_SECRET_KEY,
-        {
-            expiresIn: '7d' // -> expira en 7 dias
-        }
-    )
-
-    await mailer_transporter.sendMail(
-        {
-            to: email,
-            from: ENVIRONMENT.GMAIL_USER,
-            subject: "Verifica tu cuenta",
-            html: `
-                <body>
-                    <h1>Bienvenido a nuestra plataforma</h1>
-                    <p>Necesitamos verificar este correo electronico</p>
-                    <a href='${ENVIRONMENT.URL_BACKEND}/api/auth/verify-email/${verify_email_token}'>
-                    Click aqui para verifcar tu cuenta
-                    </a>
-                </body>
-            `
-        }
-    )
+    //Toda la logica de negocio vive en la capa de servicios
+    await auth_services.registerUser(username, email, password)
 
     return response.status(201).send({
         ok: true,
@@ -87,146 +28,95 @@ export async function register(request, response) {
     })
 }
 
-/*
-Cuando un usuario inicia sesion debemos darle una credencial firmada que nos permita indicar quien es ese usuario
-para que mas adelante el usuario nos devuelva dicha credencial y poder confiar en ella
-
-Para poder crear esa credencial firmada vamos a usar JWT (JSON Web Token)
-Los JNT son objetos de JS pasados a string (HS256) con una firma 
-*/
-
 
 /* 
-Crear la funcion login(request, response)
-Esta funcion debe primero verificar que por body llegue un email y una password
-Debe verificar que el email tenga formato de email
-Debe buscar por email al usuario y verificar que este exista (Sino decir 404 Usuario no encontrado)
-Comparar el hash guardado en DB contra la contraseña que nos envio por body el cliente 
-    - SI es incorrecto decir (400 Credenciales incorrectas)
-    - Si es correcto decir (200 Usuario autentificado exitosamente)
+Cuando un usuario inicia sesion debemos darle una credencial firmada que nos permita indicar quien es ese usuario para que mas adelante el usuario nos devuelva dicha credencial y poder confiar en ella
 
-Este controlador debe estar en el endpoint
-POST /api/auth/login
+Para poder crear esta credencial firmada usamos JWT (JsonWebTokens)
+Los JWT son objetos de JS (JSON) pasados a string (HS256) con una firma
 
 
-PASO A PASO
-
-1. Verificar si hay email y password -> 400 Bad Request
-2. Verificar email -> 400 Bad request
-3. Verificar si el usuario existe (buscar al usuario en DB por email) -> 404 Not found
-4. De ese usuario buscado comparar el hash guardado en DB contra la password que pasa el cliente por body -> 401 Credenciales incorrectas
-5. Dar mensaje de exito si todo esta bien hasta ahi
 */
-
 
 export async function login(request, response) {
     const { email, password } = request.body;
-    if (
-        !email || !password || typeof email !== "string" || typeof password !== "string"
-    ) {
-        throw new ServerError(
-            "Email and password are required",
-            400
-        );
-    }
 
-
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { 
-        throw new ServerError(
-            "Email is incorrect",
-            400
-        );
-    }
-
-    const user = await user_repository.getByEmail(email)
-
-    if (!user) {
-        throw new ServerError(
-            "Invalid email or password",
-            401
-        );
-    }
-
-    //Compara el hash guardado en DB contra la contraseña que nos envió por body el cliente.
-    const isPasswordValid = await compareHash(password, user.password); 
-    if (!isPasswordValid) {
-        throw new ServerError(
-            "Invalid email or password",
-            401
-        );
-    }
-
-    
-    if(!user.email_verificado){
-        throw new ServerError(
-            'Email no verificado',
-            403
-        )
-    }
-
-
-    /*
-    Crear un token firmado de sesion 
-    */
-
-    const auth_token = jwt.sign(
-        {
-             //Aca va a info que guarda en la credencial
-        id: user._id,
-        name: user.nombre,
-        email:user.email
-        },
-        ENVIRONMENT.JWT_SECRET_KEY //Clave secreta para firmar el token
-    )
-
+    //El servicio valida, compara la password y crea el token de acceso
+    const auth_token = await auth_services.loginUser(email, password)
 
     return response.status(200).send({
         ok: true,
         message: "You have logged in successfully",
         status: 200,
         data: {
-            auth_token: auth_token
+            auth_token
         }
     });
 }
 
+
 export async function verifyEmail (request, response){
-    const {verify_email_token} = request.params
-    //Verificar el token
-    const {email} = jwt.verify(
-        verify_email_token,
-        ENVIRONMENT.JWT_SECRET_KEY
-    )
+    const {verification_token} = request.query
 
-    const user_found = await user_repository.getByEmail(email)
-
-    //Si no existe el usuario error
-    if(!user_found){
-        throw new ServerError('Usuario no encontrado', 404)
-    }
-
-    if(!user_found.activo){
-        throw new ServerError('Usuario esta desactivado de la plataforma, contactate con soporte si consideras que esto es un error', 403)
-    }
-
-    //Si ya estas verificado deja de intentar verificarte
-    if(user_found.email_verificado){
-        throw new ServerError('Ya estas verificado', 400)
-    }
-
-    //Actualizamos al usuario para verificarlo
-    await user_repository.updateById(
-        user_found._id, 
-        {
-            email_verificado: true
-        }
-    )
+    //El servicio valida el token, busca al usuario y lo marca como verificado
+    await auth_services.verifyUserEmail(verification_token)
 
     return response.status(200).send(
         {
             ok: true, 
             status: 200,
             message: 'Usuario verificado exitosamente'
+        }
+    )
+}
+
+
+export async function resendVerificationEmail (request, response){
+    //El email llega como path param: /api/auth/verify-email/:email/resend
+    const {email} = request.params
+
+    //El servicio valida el email y decide si corresponde reenviar el mail
+    await auth_services.resendVerificationEmail(email)
+
+    return response.status(200).send(
+        {
+            ok: true,
+            status: 200,
+            message: 'Se enviara un mail con los pasos para verificar en caso de que esta cuenta sea real'
+        }
+    )
+}
+
+
+export async function forgotPassword (request, response){
+    const {email} = request.body
+
+    //El servicio valida el email y decide si corresponde enviar el mail de restablecimiento
+    await auth_services.forgotPassword(email)
+
+    return response.status(200).send(
+        {
+            ok: true,
+            status: 200,
+            message: 'Se enviara un mail con los pasos para restablecer la contrasena en caso de que esta cuenta sea real'
+        }
+    )
+}
+
+
+export async function resetPassword (request, response){
+    //El token viene desde el link del mail (querystring del FRONTEND)
+    //y la nueva password desde el formulario de restablecimiento
+    const {reset_token, password} = request.body
+
+    //El servicio valida el token, busca al usuario y guarda la nueva password encriptada
+    await auth_services.resetPassword(reset_token, password)
+
+    return response.status(200).send(
+        {
+            ok: true,
+            status: 200,
+            message: 'Contrasena restablecida exitosamente, ya podes iniciar sesion con tu nueva contrasena'
         }
     )
 }

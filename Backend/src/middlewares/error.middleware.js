@@ -4,9 +4,10 @@
 //Conclusion simple: Con este middleware de errores centralizas cualquier error de tu API, todos los errores terminaran aqui y se manejaran desde aqui
 function errorHandlerMiddleware(error, request, response, next) {
 
-    //Error esperable del sistema
+    //Error esperable del sistema (ServerError con status definido)
     if (error.status) {
-        return response.send(
+        //Respondemos con el HTTP status real del error (antes se enviaba siempre HTTP 200)
+        return response.status(error.status).send(
             {
                 ok: false,
                 status: error.status,
@@ -18,7 +19,7 @@ function errorHandlerMiddleware(error, request, response, next) {
     else {
         console.log('[Middleware de Error]:', error)
         //Error generico
-        return response.send(
+        return response.status(500).send(
             {
                 ok: false,
                 status: 500,

@@ -1,4 +1,5 @@
 import express from 'express'
+import mongoose from 'mongoose'
 import workspace_repository from '../repositories/workspace.repository.js'
 import member_repository from '../repositories/member.repository.js'
 import authMiddleware from '../middlewares/auth.middleware.js'
@@ -100,7 +101,12 @@ workspace_router.put(
     async (request, response) => {
         const { workspace_id } = request.params
         const { name, description } = request.body
-        const workspace_updated = await workspace_repository.updateById(workspace_id, { nombre: name, descripcion: description })
+
+        /*
+        BUG corregido: antes se enviaba { descripcion } (en espanol) pero el campo del modelo
+        es "description", por lo que la descripcion nunca se actualizaba
+        */
+        const workspace_updated = await workspace_repository.updateById(workspace_id, { nombre: name, description: description })
         return response.status(200).send({
             ok: true,
             message: "Workspace actualizado correctamente",
@@ -172,6 +178,18 @@ workspace_router.delete(
     workspaceMiddleware(['owner', 'admin']),
     async (request, response) => {
         const { workspace_id, member_id } = request.params
+
+        /*
+        Validar el formato del ObjectId ANTES de consultar la DB
+        (si no, findByIdAndDelete lanza un CastError no controlado y la API responderia 500)
+        */
+        if (!mongoose.Types.ObjectId.isValid(member_id)) {
+            throw new ServerError(
+                'Member id invalido',
+                400
+            )
+        }
+
         return response.status(200).send({
             ok: true,
             message: "Miembro eliminado correctamente",    

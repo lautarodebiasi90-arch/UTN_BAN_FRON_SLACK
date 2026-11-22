@@ -56,7 +56,8 @@ class UserRepository {
  
     //MONGO DB
     async get() {
-        const result = await User.find()
+        //Se excluye el hash de la password: NUNCA debe exponerse en las respuestas
+        const result = await User.find().select('-password')
         return result
     }
 
@@ -95,7 +96,8 @@ class UserRepository {
     
     //MongoDB
    async getById (user_id){
-        const result = await User.findById(user_id)
+        //Se excluye el hash de la password: NUNCA debe exponerse en las respuestas
+        const result = await User.findById(user_id).select('-password')
     
         return result
     }

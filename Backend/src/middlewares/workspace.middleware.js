@@ -1,3 +1,4 @@
+import mongoose from 'mongoose'
 import member_repository from "../repositories/member.repository.js"
 import workspace_repository from "../repositories/workspace.repository.js"
 import ServerError from "../utils/error.util.js"
@@ -18,6 +19,26 @@ function workspaceMiddleware(valid_roles) {
         (request, response, next) {
 
         const { workspace_id } = request.params
+
+        /*
+        Rutas que no llevan workspace_id en los params (ej: GET /api/workspaces para listar
+        los espacios de trabajo del usuario) solo requieren haber pasado el authMiddleware
+        */
+        if (!workspace_id) {
+            return next()
+        }
+
+        /*
+        Validar el formato del ObjectId ANTES de consultar la DB
+        (si no, findById lanza un CastError no controlado y la API responderia 500)
+        */
+        if (!mongoose.Types.ObjectId.isValid(workspace_id)) {
+            throw new ServerError(
+                'Workspace id invalido',
+                400
+            )
+        }
+
         const workspace_selected = await workspace_repository.getById(workspace_id)
 
         const membership = await member_repository.getMembershipByUserAndWorkspace(request.user.id, workspace_id)
