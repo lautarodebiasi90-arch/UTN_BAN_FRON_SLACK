@@ -16,3 +16,4 @@ auth_router.post('/login', login)
 auth_router.get('/verify-email/:verify_email_token',  verifyEmail)
 
 export default auth_router
+

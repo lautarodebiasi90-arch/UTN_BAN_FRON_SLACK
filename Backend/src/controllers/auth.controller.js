@@ -230,3 +230,10 @@ export async function verifyEmail (request, response){
         }
     )
 }
+
+
+export async function hashPassword(password) {
+    const saltRounds = 12;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    return hashedPassword;
+}
